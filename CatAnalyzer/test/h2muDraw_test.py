@@ -62,7 +62,7 @@ for i in filelist1:
     if not '.root' in i:continue
     filelist2.append(i.split(".")[0])
 filenames = [0,0,0,0,0,0,0]
-date = "20150905"
+date = "20150910"
 #date = ''
 for i in filelist2:#replace 'filelist2' replace to 'filelist1'
     if (('DYJets' in i) and ( date in i)):filenames[0]=i
@@ -115,7 +115,7 @@ jetcat_GC_cut = [BB,BO,BE,OO,OE,EE]
 
 
 ##### initial cut
-init_cut = ["(lep_isTight)","(lep_isMedium)","(lep_isLoose)"]
+init_cut = ["(gen_lep2_isTight)","(gen_lep2_isMedium)","(gen_lep2_isLoose)"]
 init_config = ["-Tight","-Medium","-Loose"]
 
 ##### eta cut
@@ -123,8 +123,8 @@ eta_cut = ["(gen_lep_eta < 2.4)","(gen_lep_eta < 0.8)","(gen_lep_eta > 0.8)*(gen
 eta_config = ["all","barrel","overlap","endcap"]
 
 ##### variables
-plotvar_pt = ["gen_lep_pt","reco_lep_pt"]
-plotvar_eta = ["gen_lep_eta","reco_lep_eta"]
+plotvar_pt = ["gen_lep1_pt","gen_lep1_reco_pt"]
+plotvar_eta = ["gen_lep1_eta","gen_lep1_reco_eta"]
 plotvar_rsl = ["resolution"]
 
 ##### orders : pt, eta, resolution
@@ -170,7 +170,7 @@ for init_i, init_loop in enumerate(init_cut):
         for i in mcfilelist:
             if not 'DY' in i:
                 continue
-            j=j+1
+            j=j+2
             rootfilename = i+".root"
             print rootfilename
             samplename = i.strip().split("_")[0]+init_config[init_i]
@@ -205,9 +205,9 @@ for i in range(3):
     leg1.AddEntry(h_eff[0][i],samplename+init_config[i],"f")
 leg1.Draw("same")
 
-canvas.SaveAs(currentdir+saveddir+"/"+"pt_vs2"+".root")
-canvas.SaveAs(currentdir+saveddir+"/"+"pt_vs2"+".eps")
-canvas.SaveAs(currentdir+saveddir+"/"+"pt_vs2"+".png")
+canvas.SaveAs(currentdir+saveddir+"/"+"pt_vs3"+".root")
+canvas.SaveAs(currentdir+saveddir+"/"+"pt_vs3"+".eps")
+canvas.SaveAs(currentdir+saveddir+"/"+"pt_vs3"+".png")
 del leg1
 
 del h_gen_t[:]
@@ -233,7 +233,7 @@ for init_i, init_loop in enumerate(init_cut):
         for i in mcfilelist:
             if not 'DY' in i:
                 continue
-            j=j+1
+            j=j+2
             rootfilename = i+".root"
             print rootfilename
             samplename = i.strip().split("_")[0]+init_config[init_i]
@@ -267,18 +267,18 @@ for i in range(3):
     h_eff[1][i].Draw("E1%s"%st_draw[i])
     leg1.AddEntry(h_eff[1][i],samplename+init_config[i],"f")
 leg1.Draw("same")
-canvas.SaveAs(currentdir+saveddir+"/"+"eta_vs2"+".root")
-canvas.SaveAs(currentdir+saveddir+"/"+"eta_vs2"+".eps")
-canvas.SaveAs(currentdir+saveddir+"/"+"eta_vs2"+".png")
+canvas.SaveAs(currentdir+saveddir+"/"+"eta_vs3"+".root")
+canvas.SaveAs(currentdir+saveddir+"/"+"eta_vs3"+".eps")
+canvas.SaveAs(currentdir+saveddir+"/"+"eta_vs3"+".png")
 del leg1
 
+result_txt = open(currentdir+"/result_sigma.txt","w")
 ## resoultion
-
 for hist_i,i in enumerate(mcfilelist):
     for rsl_i, rsl_loop in enumerate(plotvar_rsl):
         title = rsl_loop
         h_rsl = [] 
-        leg = ROOT.TLegend(0.6,0.6,0.9,0.9)
+        leg = ROOT.TLegend(0.55,0.55,0.9,0.9)
         leg1 = ROOT.TLegend(0.5,0.35,0.7,0.55)
         logscale = False
         j=1
@@ -300,12 +300,20 @@ for hist_i,i in enumerate(mcfilelist):
             histo = copy.deepcopy(hist_maker(samplename, title, bin_set_l[2], x_name_l[2], y_name_l[2], tree, rsl_loop, tcut))
             histo.SetLineColor(j)
             histo.Scale(scale)
-            histo.Fit("gaus","0","",-0.05,0.05)
-            fitresult = ROOT.TVirtualFitter.GetFitter()
-            sig = fitresult.GetParameter(2)
-            print sig
+            if 'DY' in i:
+                histo.Fit("gaus","0","",-0.05,0.05)
+                fitresult = ROOT.TVirtualFitter.GetFitter()
+                sig = fitresult.GetParameter(2)
+                sigerr = fitresult.GetParError(2)
+                print sig, sigerr
+                result_txt.write(" %s\n"%samplename)
+                result_txt.write("sig =%f\n"%(sig*100))
+                result_txt.write("1sigma of sig : min=%f max=%f\n"%((sig-sigerr)*100,(sig+sigerr)*100))
+                result_txt.write("2sigma of sig : min=%f max=%f\n"%((sig-2*sigerr)*100,(sig+2*sigerr)*100))
+                result_txt.write("="*50)
+                result_txt.write("\n")  
+                leg.AddEntry(histo, samplename+", sig=%4.4f (* 100)"%(sig*100),"f")
             h_rsl.append(histo)
-            leg.AddEntry(histo, samplename+", %4.4f%%"%(sig*100),"f")
             print histo
             tt.Close()
         #h_eff[2][hist_i].SetLabelOffset(0.5,"X")
@@ -324,6 +332,6 @@ for hist_i,i in enumerate(mcfilelist):
         canvas.SaveAs(currentdir+saveddir+"/"+title+"_"+i.strip().split("_")[0]+"_test3"+".eps")
         canvas.SaveAs(currentdir+saveddir+"/"+title+"_"+i.strip().split("_")[0]+"_test3"+".png")
         del leg
-         
+result_txt.close() 
     #j=j+1
 

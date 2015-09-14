@@ -12,7 +12,7 @@ def hist_maker(name, title, bin_set, x_name, y_name, tr, br, cut):
     tr.Project(name, br, cut)
     return hist
 
-datalumi = 49.502
+datalumi = 40.8
 currentdir = os.getcwd()
 saveddir = '/PLOTS'
 if not os.path.isdir(currentdir+saveddir):
@@ -48,8 +48,8 @@ mcfilelist = {filenames[0]:6025.2,
               filenames[2]:31.8,
               filenames[3]:65.9,
               filenames[4]:118.7}
-rdfilelist = [filenames[5],
-              filenames[6]]
+rdfilelist = ['/cms/scratch/jlee/SingleMuon_v7-3-6_Run2015B-PromptReco-v1.root',
+              filenames[5]]
 mcfilelist_order = sorted(mcfilelist.keys(), key=lambda key_value: key_value[0])
 print mcfilelist
 re_mcfilelist = [filenames[3],filenames[1],filenames[2],filenames[0],filenames[4]]
@@ -80,6 +80,10 @@ jetcat_GC_cut = [BB,BO,BE,OO,OE,EE]
 init_cuts = ["(step == 2 && isTight)","(step == 2 && isMedium)"]
 whatiscut = ["_tight2","_medium2"]
 
+## style
+from ROOT import kPink,kOrange,kSpring,kCyan,kBlue,kMagenta
+cols = [kPink,kOrange,kSpring,kCyan,kBlue,kMagenta]
+
 os.chdir(resultdir)
 for ps,init_cut in enumerate(init_cuts):
     for plot in range(4):
@@ -101,12 +105,11 @@ for ps,init_cut in enumerate(init_cuts):
         hs = ROOT.THStack(plotvar,plotvar)
         h_rd = ROOT.TH1F(plotvar, plotvar, bin_set[0], bin_set[1], bin_set[2])
         h_rd.SetMarkerStyle(20)
+        h_rd.SetMarkerSize(0.6)
         leg = ROOT.TLegend(0.7,0.7,0.9,0.9)
         leg.AddEntry(h_rd,"Data","p")
         logscale = False
-        j=1
-        for i in re_mcfilelist:
-            j=j+1
+        for num,i in enumerate(re_mcfilelist):
             rootfilename = i+".root"
             print rootfilename
             samplename = i.strip().split("_")[0]
@@ -120,7 +123,7 @@ for ps,init_cut in enumerate(init_cuts):
             scale = mcfilelist[i]*datalumi / temphist.GetEntries()
             print mcfilelist[i]
             histo = copy.deepcopy(hist_maker(samplename, title, bin_set, x_name, y_name, tree, plotvar, tcut))
-            histo.SetFillColor(j)
+            histo.SetFillColor(cols[num])
             histo.Scale(scale)
             if histo.GetMaximum()>2000:
                 logscale = True
@@ -128,9 +131,11 @@ for ps,init_cut in enumerate(init_cuts):
             leg.AddEntry(histo,samplename,"f")
             tt.Close()
         for i in rdfilelist:
-            rootfilename = i+".root"
+            if not 'Single' in i:
+                continue
+            rootfilename = i
             print rootfilename
-            samplename = i.strip().split("_")[0]
+            samplename = 'singlemu'
             tt = ROOT.TFile(rootfilename)
             tree = tt.h2mu.Get("tree")
             histo = copy.deepcopy(hist_maker(samplename, title, bin_set, x_name, y_name, tree, plotvar, tcut))
@@ -138,6 +143,7 @@ for ps,init_cut in enumerate(init_cuts):
                 logscale = True
             h_rd.Add(histo)
             tt.Close()
+            
             
 
         canvas = ROOT.TCanvas(title,title)
@@ -156,6 +162,12 @@ for ps,init_cut in enumerate(init_cuts):
         canvas.Update()
         canvas.SaveAs(currentdir+saveddir+"/"+title+whatiscut[ps]+".root")
         canvas.SaveAs(currentdir+saveddir+"/"+title+whatiscut[ps]+".png")
+        canvas.SetLogy(0)
+        hs.SetMaximum(6000)
+        hs.SetMinimum(0)
+        canvas.Update()
+        canvas.SaveAs(currentdir+saveddir+"/"+title+whatiscut[ps]+'nolog'+".root")
+        canvas.SaveAs(currentdir+saveddir+"/"+title+whatiscut[ps]+'nolog'+".png")
 
         del leg
 
