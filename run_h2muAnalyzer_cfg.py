@@ -7,17 +7,17 @@ process = cms.Process("h2muAnalyzer")
 
 if options.dataset == 0:
     savename ="h2mu.root"
-    datadir1 = '/xrootd/store/group/CAT/SingleMuon/v7-4-2_Run2015D-PromptReco-v3/150930_225445/0000/'
-    datadir2 = '/xrootd/store/group/CAT/SingleMuon/v7-4-2_Run2015D-PromptReco-v3/150930_225445/0000/'
-
+    datadir1 = '/xrootd/store/group/CAT/SingleMuon/v7-4-3_Run2015C-PromptReco-v1/151009_212332/0000/'
+    datadir2 = '/xrootd/store/group/CAT/SingleMuon/v7-4-3_Run2015D-PromptReco-v3/151009_212742/0000/'
+ 
 if options.dataset == 1:
     savename ="SingleMuon.root"
-    datadir1 = '/xrootd/store/group/CAT/SingleMuon/v7-4-2_Run2015C-PromptReco-v1/150928_133011/0000/'
-    datadir2 = '/xrootd/store/group/CAT/SingleMuon/v7-4-2_Run2015D-PromptReco-v3/150930_225445/0000/'
+    datadir1 = '/xrootd/store/group/CAT/SingleMuon/v7-4-3_Run2015C-PromptReco-v1/151009_212332/0000/'
+    datadir2 = '/xrootd/store/group/CAT/SingleMuon/v7-4-3_Run2015D-PromptReco-v3/151009_212742/0000/'
 if options.dataset == 2:
     savename ="DoubleMuon.root"
-    datadir1 = '/xrootd/store/group/CAT/DoubleMuon/v7-4-2_Run2015C-PromptReco-v1/150928_133225/0000/'
-    datadir2 = '/xrootd/store/group/CAT/DoubleMuon/v7-4-2_Run2015D-PromptReco-v3/150928_133626/0000/'
+    datadir1 = '/xrootd/store/group/CAT/DoubleMuon/v7-4-3_Run2015C-PromptReco-v1/151009_212602/0000/'
+    datadir2 = '/xrootd/store/group/CAT/DoubleMuon/v7-4-3_Run2015D-PromptReco-v3/151009_213009/0000/'
     
 
 process.load("FWCore.MessageService.MessageLogger_cfi")
@@ -35,12 +35,13 @@ print process.source.fileNames
 #runOnMC=True
 ### for run data
 #lumiFile = 'Cert_246908-255031_13TeV_PromptReco_Collisions15_25ns_JSON_v2.txt'
-lumiFile = 'Cert_246908-256869_13TeV_PromptReco_Collisions15_25ns_JSON.txt'
+#lumiFile = 'Cert_246908-256869_13TeV_PromptReco_Collisions15_25ns_JSON.txt'
+lumiFile = 'Cert_246908-257599_13TeV_PromptReco_Collisions15_25ns_JSON.txt'
 #for i in process.source.fileNames:
 #    if 'Run2015' in i:
 #        runOnMC=False
 
-if options.dataset:
+if options.dataset!=0:
     from FWCore.PythonUtilities.LumiList import LumiList
     lumiList = LumiList(os.environ["CMSSW_BASE"]+'/src/CATTools/CatProducer/prod/LumiMask/'+lumiFile)
     process.source.lumisToProcess = lumiList.getVLuminosityBlockRange()

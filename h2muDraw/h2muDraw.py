@@ -32,7 +32,7 @@ for i in filelist1:
     filelist2.append(i.split(".")[0])
 filenames = [0,0,0,0,0,0,0,0,0]
 
-date = "20151006"
+date = "20151013"
 #date = ''
 for i in filelist2:#replace 'filelist2' replace to 'filelist1'
     if (('DYJets' in i) and ( date in i)):filenames[0]=i
@@ -42,8 +42,8 @@ for i in filelist2:#replace 'filelist2' replace to 'filelist1'
     if (('ZZ' in i) and ( date in i)):filenames[4]=i
     if (('GluGlu' in i) and ( date in i)):filenames[5]=i
     if (('VBF' in i) and ( date in i)):filenames[6]=i
-    if (('Double' in i) and ( '2015' not in i)):filenames[7]=i
-    if (('Single' in i) and ( '2015' not in i)):filenames[8]=i
+    if (('Double' in i) and ( date in i)):filenames[7]=i
+    if (('Single' in i) and ( date in i)):filenames[8]=i
     
 '''
 mcfilelist = {'mc_DYJets_merged':6025.2 ,
@@ -62,7 +62,8 @@ mcfilelist = {filenames[0]:6025.2,
               filenames[5]:1,
               filenames[6]:1
              }
-rdfilelist = [filenames[7],
+rdfilelist = [
+              #filenames[7],
               filenames[8]
              ]
 mcfilelist_order = sorted(mcfilelist.keys(), key=lambda key_value: key_value[0])
@@ -92,8 +93,8 @@ jetcat_GC = ["BB","BO","BE","OO","OE","EE"]
 jetcat_GC_cut = [BB,BO,BE,OO,OE,EE]
 
 ## initial cut
-init_cuts = ["(step == 4 && isTight)","(step == 4 && isMedium)"]
-whatiscut = ["_tight","_medium"]
+init_cuts = ["(step == 3 && isTight)","(step == 3 && isMedium)","(step == 4 && isTight)","(step == 4 && isMedium)"]
+whatiscut = ["_tight3","_medium3","_tight4","_medium4"]
 
 ## style
 from ROOT import kPink,kOrange,kSpring,kCyan,kAzure,kMagenta
@@ -108,6 +109,7 @@ for ps,init_cut in enumerate(init_cuts):
         bin_set = [250, 0, 250]
         x_name = "a.u."
         y_name = "M [GeV]"
+        '''
         if plot == 1:
           title = plotvar+"_"+jetcat[4]
           tcut = init_cut+"*"+jetcat_cut[4]
@@ -117,6 +119,7 @@ for ps,init_cut in enumerate(init_cuts):
         if plot == 3:
           title = plotvar+"_"+jetcat[6]
           tcut = init_cut+"*"+jetcat_cut[6]
+        '''
         hs = ROOT.THStack(plotvar,plotvar)
         h_rd = ROOT.TH1F(plotvar, plotvar, bin_set[0], bin_set[1], bin_set[2])
         h_rd.SetMarkerStyle(20)
@@ -131,12 +134,15 @@ for ps,init_cut in enumerate(init_cuts):
             samplename = i.strip().split("_")[0]
             tt = ROOT.TFile(rootfilename)
             tree = tt.h2mu.Get("tree")
+            """
             # untill better way to get nentries
             tempdraw = plotvar +" >> temp" +samplename
             tree.Draw(tempdraw)
             temphist = ROOT.gDirectory.Get("temp" +samplename)
             # untill better way to get nentries
             scale = mcfilelist[i]*datalumi / temphist.GetEntries()
+            """
+            scale = mcfilelist[i]*datalumi / tree.GetEntries()
             print 'lumi = %g '%mcfilelist[i], "scale = %g"%scale
             histo = copy.deepcopy(hist_maker(samplename, title, bin_set, x_name, y_name, tree, plotvar, tcut))
             print num
@@ -176,6 +182,7 @@ for ps,init_cut in enumerate(init_cuts):
         leg.Draw("same")
         #if logscale:
         #    canvas.SetLogy()
+        hs.SetMinimum(0.1)
         canvas.SetLogy()
         canvas.Update()
         canvas.SaveAs(currentdir+saveddir+"/"+title+whatiscut[ps]+"_%g"%datalumi+".root")
@@ -188,7 +195,7 @@ for ps,init_cut in enumerate(init_cuts):
         canvas.SaveAs(currentdir+saveddir+"/"+title+whatiscut[ps]+'nolog'+"_%g"%datalumi+".png")
 
         del leg
-
+'''
     for jet01 in range(4):
       for gc in range(6):
         title = plotvar+"_"+jetcat[jet01]+"_"+jetcat_GC[gc]
@@ -246,5 +253,5 @@ for ps,init_cut in enumerate(init_cuts):
         canvas.SaveAs(currentdir+saveddir+"/"+title+whatiscut[ps]+".png")
 
         del leg
-
+'''
 #dilepmass = ROOT.gDirectory.Get("dilepmass")
