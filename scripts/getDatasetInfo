@@ -1,0 +1,111 @@
+#!/usr/bin/env python
+
+import sys, os
+
+if len(sys.argv) < 2:
+    print sys.argv[0], "PROD_VERSION"
+    print "Default PROD_VERISON = v7-4-1"
+    sys.argv.append('v7-4-1')
+
+import subprocess
+if subprocess.call("type xrd", shell=True, 
+        stdout=subprocess.PIPE, stderr=subprocess.PIPE) != 0:
+    print "Error: Need xrd command"
+    sys.exit()
+
+gidMap = {
+    'v7-3-4':'857222646',
+    'v7-4-1':'212761185',
+}
+gid = gidMap[sys.argv[1]]
+
+hostname = os.environ["HOSTNAME"]
+cmd = ""
+xrdbase = ''
+xrdhost = ''
+if "sdfarm" in hostname:
+    xrdhost = 'cms-xrdr.sdfarm.kr'
+    xrdbase = '/xrd'
+elif "uos" in hostname:
+    xrdhost = 'uosaf0007.sscc.uos.ac.kr'
+    xrdbase = '/cms'
+else:
+    print "Hostname", hostname, "not supported"
+    sys.exit()
+cmd = "xrd %s ls s" % (xrdhost)
+
+from urllib import urlopen
+import csv
+gdocbase = "https://docs.google.com/spreadsheets/d/1rWM3AlFKO8IJVaeoQkWZYWwSvicQ1QCXYSzH74QyZqE"
+print "Retrieving dataset info from google doc..."
+print "Source URL =", gdocbase
+csv = list(csv.reader(urlopen(gdocbase + "/pub?gid=%s&single=true&output=csv" % gid).readlines()))
+
+ds = []
+nameIdx = csv[0].index("Name")
+titleIdx = csv[0].index("Title")
+xsecIdx = csv[0].index("Cross section (pb)")
+nevtIdx = csv[0].index("NEvent")
+lumiIdx = csv[0].index("luminosity (pb-1)")
+pathIdx = csv[0].index("Path")
+for l in csv[1:]:
+    if len(l) == 0 or len(l[0]) == 0: continue
+    xsec, nevt, lumi = l[xsecIdx], l[nevtIdx], l[lumiIdx]
+    if xsec == "": xsec = "0"
+    if nevt == "": nevt = "0"
+    if lumi == "": lumi = "0"
+    ds.append({'title':l[titleIdx],
+               'name':l[nameIdx],
+               'xsec':float(xsec),
+               'nevt':int(nevt),
+               'lumi':float(lumi),
+               'path':l[pathIdx]})
+
+def listxrd(path):
+    cmd = "xrd %s ls " % xrdhost
+    size = 0
+    l = set()
+    for x in subprocess.check_output(cmd + xrdbase + path, shell=True).strip().split('\n'):
+        xx = x.split()
+        if len(xx) == 0: continue
+        if xx[0][0] not in ('d', '-'): continue
+        xpath = xx[-1]
+        if len(xpath) == 0: continue
+        xsize = int(xx[1])
+        if xpath.startswith(xrdbase): xpath = xpath[len(xrdbase):]
+        if xpath in l: continue
+        l.add(xpath)
+        size += xsize
+    return l, size
+
+for d in ds:
+    pp = d['path']
+    d['files'] = []
+    d['size'] = 0
+    for dd in listxrd(pp)[0]:
+        files, size = listxrd(dd)
+        d['size'] += size
+        for ff in files:
+            if not ff.endswith(".root"): continue
+            ff = ff[len(pp)+1:]
+            d['files'].append(ff)
+    d['files'].sort()
+
+outDir = os.environ["CMSSW_BASE"]+"/src/CATTools/CatAnalyzer/data"
+if not os.path.exists(outDir): os.makedirs(outDir)
+
+import json
+f = open("%s/dataset.json" % outDir, "w")
+print "Saving dataset info to %s/dataset.json" % outDir
+print>>f, json.dumps(ds)
+f.close()
+for d in ds:
+    print "Saving a dataset info to %s/dataset_%s.txt" % (outDir, d['name'])
+    f = open("%s/dataset_%s.txt" % (outDir, d['name']), "w")
+    for key in d:
+        if key == "files": continue
+        print>>f, "#", key, "=", d[key]
+    for ff in d['files']:
+        print>>f, os.path.join(d['path'], ff)
+    f.close()
+
