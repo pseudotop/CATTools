@@ -186,6 +186,7 @@ def drawTH1(name, cmsLumi, mclist, data, x_name, y_name, doLog=False, doRatio=Tr
     canv.Modified()
     canv.Update()
     canv.SaveAs(name)
+    return canv
 
 def drellYanEstimation(mc_ee_in, mc_ee_out, mc_mm_in, mc_mm_out,
                        rd_ee_in, rd_mm_in, rd_em_in):    
