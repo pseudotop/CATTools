@@ -16,7 +16,7 @@ with open(dataset_json) as data_file:
     for i in data:
         #print data[0]
         datasetName = i['name']
-        if "Enriched" in datasetName:
+        if "QCD" in datasetName:
             continue
         if "ttH" in datasetName:
             continue       
