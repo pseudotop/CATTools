@@ -297,7 +297,10 @@ void h2muAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSet
   b_step = 2;
   b_step2 = true;
 
-  if (b_ll_m < 20){
+  if (selectedMuons[0].pt() <= 20. || 
+      selectedMuons[1].pt() <= 20. ||
+      std::abs(selectedMuons[0].eta()) >= 2.4 ||   
+      std::abs(selectedMuons[1].eta()) >= 2.4 ){
     ttree_->Fill();
     return;
   }
@@ -324,7 +327,6 @@ void h2muAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSet
     b_step = 5;
     b_step5 = true;
   }
-
   // -----------------------------  Jet Category  -----------------------------------
   b_cat_jet = jetCategory(selectedJets, b_met, b_ll_pt);
 
@@ -335,10 +337,10 @@ cat::MuonCollection h2muAnalyzer::selectMuons(const cat::MuonCollection& muons )
 {
   cat::MuonCollection selmuons;
   for (auto mu : muons) {
-    if (mu.pt() <= 20.) continue;
+    if (mu.pt() <= 10.) continue;
     if (std::abs(mu.eta()) >= 2.4) continue;
     if (!mu.isLooseMuon()) continue;
-    if (mu.relIso(0.4) >= 0.15) continue;
+    if (mu.relIso(0.4) >= 0.25) continue;//???
     //printf("muon with pt %4.1f, POG loose id %d, tight id %d\n", mu.pt(), mu.isLooseMuon(), mu.isTightMuon());
     selmuons.push_back(mu);
   }
