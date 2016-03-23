@@ -25,10 +25,10 @@ with open(dataset_json) as data_file:
             continue
         if "ttW" in datasetName:
             continue
-
-        fileList = datadir + 'dataset/dataset_' + datasetName + '.txt'
-        jobName = analysis+'_'+datasetName
-        createbatch = "create-batch --cfg %s --jobName %s --fileList %s --maxFiles 10"%(pythonCfg, jobName, fileList)
-        print createbatch
-        os.system(createbatch)
+        if ('SingleMuon' in datasetName or 'DYJet' in datasetName):
+            fileList = datadir + 'dataset/dataset_' + datasetName + '.txt'
+            jobName = analysis+'_'+datasetName
+            createbatch = "create-batch --cfg %s --jobName %s --fileList %s --maxFiles 10"%(pythonCfg, jobName, fileList)
+            print createbatch
+            os.system(createbatch)
         

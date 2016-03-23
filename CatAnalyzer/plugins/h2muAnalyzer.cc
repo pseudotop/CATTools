@@ -36,7 +36,7 @@ private:
 
   cat::MuonCollection selectMuons(const cat::MuonCollection& muons ) const;
   cat::ElectronCollection selectElecs(const cat::ElectronCollection& elecs ) const;
-  cat::JetCollection selectJets(const cat::JetCollection& jets, cat::MuonCollection & recolep) const;
+  cat::JetCollection selectJets(const cat::JetCollection& jets, cat::MuonCollection& muons) const;
   cat::JetCollection selectBJets(const cat::JetCollection& jets) const;
   int preSelect(const cat::JetCollection& seljets, float MET) const;
   int jetCategory(const cat::JetCollection& seljets, float MET, float ll_pt) const;
@@ -218,6 +218,7 @@ void h2muAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSet
   
   edm::Handle<reco::GenParticleCollection> genParticles;
 
+
   cat::MuonCollection selectedMuons = selectMuons( *muons );
   sort(selectedMuons.begin(), selectedMuons.end(), GtByCandPt());
   
@@ -296,7 +297,6 @@ void h2muAnalyzer::analyze(const edm::Event& iEvent, const edm::EventSetup& iSet
   }
   b_step = 2;
   b_step2 = true;
-
   
   edm::Handle<edm::TriggerResults> triggerBits;
   edm::Handle<pat::TriggerObjectStandAloneCollection> triggerObjects;
@@ -360,15 +360,18 @@ cat::ElectronCollection h2muAnalyzer::selectElecs(const cat::ElectronCollection&
   return selelecs;
 }
 
-cat::JetCollection h2muAnalyzer::selectJets(const cat::JetCollection& jets, cat::MuonCollection& recomu ) const
+cat::JetCollection h2muAnalyzer::selectJets(const cat::JetCollection& jets, cat::MuonCollection& muons) const
 {
   cat::JetCollection seljets;
   for (auto jet : jets) {    
-    if (!jet.LooseId()) continue;
+    //if (!jet.LooseId()) continue;
     if (jet.pt() <= 30.) continue;
-    if (std::abs(jet.eta()) >= 2.4)  continue;
-    //if (jet.tlv().DeltaR(recomu[0]) <= 0.4) continue;
-    //if (jet.tlv().DeltaR(recomu[1]) <= 0.4) continue;
+    if (std::abs(jet.eta()) >= 4.7)  continue;
+    for (auto muon : muons){
+      if (jet.tlv().DeltaR(muon.tlv()) < 0.3) continue;
+    }
+    //if (jet.tlv().DeltaR(muons[0].tlv()) >= 0.3) continue;
+    //if (jet.tlv().DeltaR(muons[1].tlv()) >= 0.3) continue;
     // printf("jet with pt %4.1f\n", jet.pt());
     seljets.push_back(jet);
   }

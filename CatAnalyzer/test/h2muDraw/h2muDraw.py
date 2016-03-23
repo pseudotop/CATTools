@@ -18,18 +18,19 @@ datalumi = 2260
 rootfileDir = "%s/src/CATTools/CatAnalyzer/test/results_merged/h2muAnalyzer_" % os.environ['CMSSW_BASE']
 
 CMS_lumi.lumi_sqrtS = "%.0f pb^{-1}, #sqrt{s} = 13 TeV 25ns "%(datalumi)
-mcfilelist = ['VBF_HToMuMu',
+mcfilelist = [
+             # 'VBF_HToMuMu',
               'DYJets',
-              'ZZTo4L_powheg',
-              'ZZTo2L2Q',
-              'ZZTo2L2Nu_powheg',
-              'WWTo2L2Nu_powheg',
-              'WZTo2L2Q',
-              'WZTo3LNu_powheg',
+             # 'ZZTo4L_powheg',
+             # 'ZZTo2L2Q',
+             # 'ZZTo2L2Nu_powheg',
+             # 'WWTo2L2Nu_powheg',
+             # 'WZTo2L2Q',
+             # 'WZTo3LNu_powheg',
              # 'GluGluToZZTo2mu2tau',
              # 'GluGluToZZTo2e2mu',
              # 'GluGluToZZTo4mu',
-              'TTJets_aMC',
+             # 'TTJets_aMC',
              # 'ttZToLLNuNu',
              ]#ref : https://twiki.cern.ch/twiki/bin/viewauth/CMS/HiggsToMuMu
 #mcfilelist = ['VBF_HToMuMu','WW','WZ','ZZ','TT_powheg','DYJets','DYJets_10to50']#,'WJets']
