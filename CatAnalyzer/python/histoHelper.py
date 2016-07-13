@@ -318,11 +318,8 @@ def drawBWFit(name, data, x_min, x_max, doLog=False, draw=False):
     print gmean,gmeanerr,ggamma,ggammaerr
     return gmean,gmeanerr,ggamma,ggammaerr
 
-def parameterization(name, data, mclist, x_min, x_max, mean, meanerr, gamma, gammaerr):
+def parameterization(name, data, mclist, x_min, x_max, mean, meanerr, gamma, gammaerr,doLog=True):
     fp = ROOT.TF1("fp",fcnParameterization,x_min,x_max,5)
-    fp.SetLineColor(ROOT.kRed)
-    fp.SetParLimits(1,mean-meanerr,mean+meanerr)
-    fp.SetParLimits(2,gamma-gammaerr,gamma+gammaerr)
 
     leg = ROOT.TLegend(0.71,0.60,0.90,0.80)
     leg.SetBorderSize(0)
@@ -345,13 +342,25 @@ def parameterization(name, data, mclist, x_min, x_max, mean, meanerr, gamma, gam
         if not any(inversed.GetTitle() == s for s in leghist):
             #leg.AddEntry(inversed, inversed.GetTitle(), "f")
             leghist.append(inversed.GetTitle())
+    hsum = hs.GetStack().Last()
+    nmc = hsum.Integral(x_min,x_max)
+    fp.SetLineColor(ROOT.kRed)
+    #fp.SetParLimits(0,nmc,nmc)
+    fp.SetParLimits(1,mean-meanerr,mean+meanerr)
+    fp.SetParLimits(2,gamma-gammaerr,gamma+gammaerr)
+    fp.SetLineWidth(2)
+    leg.AddEntry(fp,"fitting","l")
 
     c = ROOT.TCanvas(name,name,800,600)
     data.Fit("fp","R")
     data.Draw()
+    hs.Draw("same")
     data.Draw("esamex0")
+    fp.Draw("same")
     leg.Draw("same")
     setNameIntoCanvas(c,name)
+    if doLog:
+        c.SetLogy()
    
     c.Update()
     c.SaveAs(name)

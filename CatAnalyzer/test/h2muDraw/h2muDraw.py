@@ -17,7 +17,8 @@ h2muDraw.py -c 'll_m>50&&step>=5&&isTight==1&&filtered==1' -b [100,-3,3] -p lep1
 
 json_used = 'Golden'
 datalumi = 2260
-rootfileDir = "%s/src/CATTools/CatAnalyzer/test/results_merged/h2muAnalyzer_" % os.environ['CMSSW_BASE']
+rootfileDir = "/xrootd/store/user/pseudotop/ntuples/results_merged/v7-6-3/h2muAnalyzer_"
+#rootfileDir = "%s/src/CATTools/CatAnalyzer/test/results_merged/h2muAnalyzer_" % os.environ['CMSSW_BASE']
 #rootfileDir = "%s/cattuples/20160324_163101/results_merged/h2muAnalyzer_" % os.environ['HOME_SCRATCH']
 
 CMS_lumi.lumi_sqrtS = "%.0f pb^{-1}, #sqrt{s} = 13 TeV 25ns "%(datalumi)
@@ -48,7 +49,7 @@ rdfilelist = [
               #'SingleMuon_Run2015D'
              ]
 
-datasets = json.load(open("%s/src/CATTools/CatAnalyzer/data/dataset.json" % os.environ['CMSSW_BASE']))
+datasets = json.load(open("%s/src/CATTools/CatAnalyzer/data/dataset/dataset.json" % os.environ['CMSSW_BASE']))
 
 #cut_step = "(step>=5)"
 cut = 'dilep.M()>20&&step>=5&&filtered==1'
@@ -143,6 +144,7 @@ for imc,mcname in enumerate(mcfilelist):
         scale = scale*30.
         title = title+" #times 30"
     rfname = rootfileDir + mcname +".root"
+    print rfname
 
     tfile = ROOT.TFile(rfname)
     wentries = tfile.Get("cattree/nevents").Integral()
@@ -183,6 +185,7 @@ for imc,mcname in enumerate(mcfilelist):
 '''        
 print "rdfname: %s\n tname: %s\n binning: %s\n plotvar: %s\n tcut: %s\n"%(rdfname, tname, binning, plotvar, tcut)
 rdhist = makeTH1(rdfname, tname, 'data', binning, plotvar, tcut)
+#drawTH1(f_name+".png", CMS_lumi, mchistList, rdhist, x_name, y_name,dolog)
 
 x_min = 50
 f_txt_bw = open("bw_%s.txt"%(f_name),"w")
@@ -211,6 +214,4 @@ while (x_min<130):
     x_min +=10
 
 f_txt_bw.close()
-#drawTH1(f_name+".png", CMS_lumi, mchistList, rdhist, x_name, y_name,dolog)
 
-#print mean,gamma
