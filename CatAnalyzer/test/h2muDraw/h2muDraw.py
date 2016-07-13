@@ -21,7 +21,7 @@ rootfileDir = "%s/src/CATTools/CatAnalyzer/test/results_merged/h2muAnalyzer_" % 
 #rootfileDir = "%s/cattuples/20160324_163101/results_merged/h2muAnalyzer_" % os.environ['HOME_SCRATCH']
 
 CMS_lumi.lumi_sqrtS = "%.0f pb^{-1}, #sqrt{s} = 13 TeV 25ns "%(datalumi)
-mcfilelist_mumu = [
+mcfilelist = [
               'GG_HToMuMu',
              # 'GluGluToZZTo2mu2tau',
              # 'GluGluToZZTo2e2mu',
@@ -38,27 +38,6 @@ mcfilelist_mumu = [
               'DYJets',
               'DYJets_10to50',
              ]#ref : https://twiki.cern.ch/twiki/bin/viewauth/CMS/HiggsToMuMu
-mcfilelist_others = [
-              'GG_HToMuMu',
-             # 'GluGluToZZTo2mu2tau',
-             # 'GluGluToZZTo2e2mu',
-             # 'GluGluToZZTo4mu',
-             # 'ttZToLLNuNu',
-             # 'ZZTo4L_powheg',
-             # 'ZZTo2L2Q',
-             # 'ZZTo2L2Nu_powheg',
-             # 'WWTo2L2Nu_powheg',
-             # 'WZTo2L2Q',
-             # 'WZTo3LNu_powheg',
-              'ZZ',
-              'WZ',
-              'WW',
-              'DYJets',
-              'DYJets_10to50',
-              'SingleTbar_tW',
-              'SingleTop_tW',
-              'TTJets_aMC',
-             ]#compare emu to rd
 #mcfilelist = ['VBF_HToMuMu','WW','WZ','ZZ','TT_powheg','DYJets','DYJets_10to50']#,'WJets']
 rdfilelist = [
               'MuonEG_Run2015',#emu
@@ -139,23 +118,12 @@ if json_used=='Silver':
 
 tname = "cattree/nom"
 
-mcfilelist =[]
 mchistList = []
 
 dolog = True
 tcut = '(%s)*%s'%(cut,weight)
 #tcut = '(%s)'%(cut)
 rdfname = rootfileDir + rdfilelist[2] +".root"
-mcfilelist = mcfilelist_mumu
-channel=3
-if 'll_m_emu' in f_name:
-  rdfname = rootfileDir + rdfilelist[0] +".root"
-  mcfilelist = mcfilelist_others
-  channel=1
-if 'll_m_ee' in f_name:
-  rdfname = rootfileDir + rdfilelist[1] +".root"
-  mcfilelist = mcfilelist_others
-  channel=2
 
 sig=[0,0,0,0,0,0]
 bg=[0,0,0,0,0,0]
@@ -226,7 +194,6 @@ while (x_min<130):
     value[0],value[1],value[2],value[3] = drawBWFit("bw_"+f_name+".png",rdhist,88,94)
     print>>f_txt_bw, "==== %d ===="%(x_min)   
     print>>f_txt_bw, "f_name : %s\n mean : %f\n mean error : %f\n gamma : %f\n gamma error : %f\n"%(f_name,value[0],value[1],value[2],value[3])
-    parameterization("fit_"+f_name+"_%d.png"%(x_min), rdhist, mchistList, x_min, binning[2], value[0], value[1], value[2], value[3])
     #f_txt2 = open("eventlist_%s_%s.txt"%(rdfilelist[0],f_name),"w")
     #print>>f_txt2, 
  #   print>>f2_txt, " cut : %s\n"%(f_name)
@@ -236,6 +203,8 @@ while (x_min<130):
     if 'SingleMuon' in rfname:
       for i in range(11):
         rdhist.SetBinContent(120+i,0)
+    #after blind the signal region.
+    parameterization("fit_"+f_name+"_%d.png"%(x_min), rdhist, mchistList, x_min, binning[2], value[0], value[1], value[2], value[3])
     #f_txt2.close()
     f_txt.close()
     f2_txt.close()
