@@ -59,7 +59,7 @@ print cut
 #weight = 'genweight*puweight*mueffweight*eleffweight*tri'
 weight = 'weight'
 plotvar = 'dilep.M()'
-binning = [200, 0, 200]
+binning = [300, 0, 300]
 x_name = 'mass [GeV]'
 y_name = 'events'
 dolog = False
@@ -187,9 +187,12 @@ print "rdfname: %s\n tname: %s\n binning: %s\n plotvar: %s\n tcut: %s\n"%(rdfnam
 rdhist = makeTH1(rdfname, tname, 'data', binning, plotvar, tcut)
 #drawTH1(f_name+".png", CMS_lumi, mchistList, rdhist, x_name, y_name,dolog)
 
-x_min = 50
+print "="*50
+print rfname
+print "="*50
+x_min = 110
 f_txt_bw = open("bw_%s.txt"%(f_name),"w")
-while (x_min<130):
+while (x_min<140):
   if plotvar == 'dilep.M()':# blind data around higgs mass
     f_txt = open("events_%s.txt"%(f_name),"w")
     print>>f_txt, "Run data : %s\n cut : %s\n # : \n %d\n"%(rdfilelist[0],f_name,rdhist.Integral(rdhist.FindBin(100),rdhist.FindBin(110)))
@@ -203,11 +206,19 @@ while (x_min<130):
  #   for j in range(6):
  #       print>>f2_txt, "*"*(50)
  #       print>>f2_txt, " datalumi : %s\n sig : %s\n bg : %s\n significance : %s\n"%(lumilist[j],sig[j],bg[j],(sig[j]/math.sqrt(sig[j]+bg[j])))
-    if 'SingleMuon' in rfname:
-      for i in range(11):
-        rdhist.SetBinContent(120+i,0)
-    #after blind the signal region.
     parameterization("fit_"+f_name+"_%d.png"%(x_min), rdhist, mchistList, x_min, binning[2], value[0], value[1], value[2], value[3])
+    if 'SingleMuon' in rdfname:
+        if len(binning) == 3:
+            htmp = ROOT.TH1D("tmp", "tmp", binning[0], binning[1], binning[2])
+        else:
+            htmp = ROOT.TH1D("tmp", "tmp", len(binning)-1, array.array('f', binning))
+        for i in range(binning[1],binning[2]):
+            if (rdhist.FindBin(120)<=i<=rdhist.FindBin(130)):continue
+            entries=rdhist.GetBinContent(i)
+            htmp.SetBinContent(i,entries)
+            
+    #after blind the signal region.
+    parameterization("fit_"+f_name+"_%d_nosignal.png"%(x_min), htmp, mchistList, x_min, binning[2], value[0], value[1], value[2], value[3])
     #f_txt2.close()
     f_txt.close()
     f2_txt.close()

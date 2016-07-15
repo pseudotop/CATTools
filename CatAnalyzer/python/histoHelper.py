@@ -319,6 +319,8 @@ def drawBWFit(name, data, x_min, x_max, doLog=False, draw=False):
     return gmean,gmeanerr,ggamma,ggammaerr
 
 def parameterization(name, data, mclist, x_min, x_max, mean, meanerr, gamma, gammaerr,doLog=True):
+    c = ROOT.TCanvas(name,name,800,600)
+
     fp = ROOT.TF1("fp",fcnParameterization,x_min,x_max,5)
 
     leg = ROOT.TLegend(0.71,0.60,0.90,0.80)
@@ -344,41 +346,56 @@ def parameterization(name, data, mclist, x_min, x_max, mean, meanerr, gamma, gam
             leghist.append(inversed.GetTitle())
     hsum = hs.GetStack().Last()
     nmc = hsum.Integral(x_min,x_max)
+    print nmc
     fp.SetLineColor(ROOT.kRed)
     #fp.SetParLimits(0,nmc,nmc)
     fp.SetParLimits(1,mean-meanerr,mean+meanerr)
     fp.SetParLimits(2,gamma-gammaerr,gamma+gammaerr)
-    fp.SetLineWidth(2)
-    leg.AddEntry(fp,"fitting","l")
+    fp.SetLineWidth(3)
+    fp.SetParNames("N_{bg}","m_{Z}","#gamma","#Lambda","#beta")
+    leg.AddEntry(fp,"fit","l")
 
-    c = ROOT.TCanvas(name,name,800,600)
     data.Fit("fp","R")
     data.Draw()
     hs.Draw("same")
     data.Draw("esamex0")
     fp.Draw("same")
     leg.Draw("same")
-    setNameIntoCanvas(c,name)
     if doLog:
         c.SetLogy()
-   
+    setNameIntoCanvas(c,name)
+    c.cd()
     c.Update()
+   
     c.SaveAs(name)
 
 def setNameIntoCanvas(pad,name):
     if "." in name:
         fname=name.split(".")[0]
-        print fname
+    else:
+        fname=name
+    print fname
+
     H = pad.GetWh()
     W = pad.GetWw() 
     l = pad.GetLeftMargin()
     t = pad.GetTopMargin()
     r = pad.GetRightMargin()
     b = pad.GetBottomMargin()
+    #pad.DrawFrame(0,0,1,1)
 
+    print "="*50
+    print H, W
+    print l, t, r, b
+    print "="*50
+
+    #need to fix the code for putting text in canvas.
     latex=ROOT.TLatex()
     latex.DrawLatex(r,1-t+0.2*t,fname)
-    pad.Update
+    #latex.DrawLatex(W/2,H/2,fname)
+    #pad.Modified()
+    pad.Update()
+    return pad
 
 
 
