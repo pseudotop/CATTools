@@ -1,0 +1,205 @@
+#!/usr/bin/env python
+import ROOT, CATTools.CatAnalyzer.CMS_lumi, json, os, getopt, sys
+from CATTools.CatAnalyzer.histoHelper import *
+from ROOT import TLorentzVector
+#import DYestimation
+ROOT.gROOT.SetBatch(True)
+'''
+h2muDraw.py -c 'll_m>50&&step>=5&&isTight==1&&filtered==1' -b [40,0,40] -p nvertex -x 'no. vertex' &
+h2muDraw.py -c 'll_m>50&&step>=5&&isTight==1&&filtered==1' -b [200,0,200] -p ll_m -x 'mass [GeV]' &
+h2muDraw.py -c 'll_m>50&&step>=5&&isTight==1&&filtered==1' -b [100,0,100] -p ll_pt -x 'diMuon p_{T}  [GeV]' &
+h2muDraw.py -c 'll_m>50&&step>=5&&isTight==1&&filtered==1' -b [100,0,100] -p lep1_pt -x 'leading muon p_{T}  [GeV]' &
+h2muDraw.py -c 'll_m>50&&step>=5&&isTight==1&&filtered==1' -b [100,0,100] -p lep2_pt -x 'sub-leading muon p_{T}  [GeV]' &
+h2muDraw.py -c 'll_m>50&&step>=5&&isTight==1&&filtered==1' -b [100,0,100] -p lep1_pt,lep2_pt -x 'muon p_{T}  [GeV]' &
+h2muDraw.py -c 'll_m>50&&step>=5&&isTight==1&&filtered==1' -b [100,0,100] -p met -x 'met  [GeV]' &
+h2muDraw.py -c 'll_m>50&&step>=5&&isTight==1&&filtered==1' -b [100,-3,3] -p lep1_eta,lep2_eta -x '#eta' &
+'''
+
+json_used = 'Golden'
+datalumi = 2260
+rootfileDir = "/xrootd/store/user/pseudotop/ntuples/results_merged/v7-6-6/h2muAnalyzer_"
+#rootfileDir = "%s/src/CATTools/CatAnalyzer/test/results_merged/h2muAnalyzer_" % os.environ['CMSSW_BASE']
+#rootfileDir = "%s/cattuples/20160324_163101/results_merged/h2muAnalyzer_" % os.environ['HOME_SCRATCH']
+
+CMS_lumi.lumi_sqrtS = "%.0f pb^{-1}, #sqrt{s} = 13 TeV 25ns "%(datalumi)
+mcfilelist = [
+              'GG_HToMuMu',
+             # 'GluGluToZZTo2mu2tau',
+             # 'GluGluToZZTo2e2mu',
+             # 'GluGluToZZTo4mu',
+             # 'ttZToLLNuNu',
+              'VBF_HToMuMu',
+              'ZZTo4L_powheg',
+              'ZZTo2L2Q',
+              'ZZTo2L2Nu_powheg',
+              'WWTo2L2Nu_powheg',
+              'WZTo2L2Q',
+              'WZTo3LNu_powheg',
+              'TTJets_aMC',
+              'DYJets',
+              'DYJets_10to50',
+             ]#ref : https://twiki.cern.ch/twiki/bin/viewauth/CMS/HiggsToMuMu
+#mcfilelist = ['VBF_HToMuMu','WW','WZ','ZZ','TT_powheg','DYJets','DYJets_10to50']#,'WJets']
+rdfilelist = [
+              'MuonEG_Run2015',#emu
+              'SingleElectron_Run2015',#ee
+              'SingleMuon_Run2015',#mumu
+              #'DoubleEG_Run2015', #compare emu to mc
+              #'SingleMuon_Run2015C',
+              #'SingleMuon_Run2015D'
+             ]
+
+datasets = json.load(open("%s/src/CATTools/CatAnalyzer/data/dataset/dataset.json" % os.environ['CMSSW_BASE']))
+
+#cut_step = "(step>=5)"
+cut = 'dilep.M()>20&&step>=5&&filtered==1'
+#cut = 'filtered==1&&%s&&%s'%(cut_step,emu_pid)
+#cut = 'channel==2'
+print cut
+#weight = 'genweight*puweight*mueffweight*eleffweight*tri'
+weight = 'weight'
+plotvar = 'dilep.M()'
+binning = [300, 0, 300]
+x_name = 'mass [GeV]'
+y_name = 'events'
+dolog = False
+f_name = 'll_m'
+
+try:
+    opts, args = getopt.getopt(sys.argv[1:],"hdc:w:b:p:x:y:f:j:",["cut","weight","binning","plotvar","x_name","y_name","f_name","json_used","dolog"])
+except getopt.GetoptError:          
+    print 'Usage : ./h2muDraw.py -c <cut> -w <weight> -b <binning> -p <plotvar> -x <x_name> -y <y_name> -f <f_name> -j <json_used> -d <dolog>'
+    sys.exit(2)
+for opt, arg in opts:
+    if opt == '-h':
+        print 'Usage : ./h2muDraw.py -c <cut> -w <weight> -b <binning> -p <plotvar> -x <x_name> -y <y_name> -f <f_name> -j <json_used> -d <dolog>'
+        sys.exit()
+    elif opt in ("-c", "--cut"):
+        cut = arg
+    elif opt in ("-w", "--weight"):
+        weight = arg
+    elif opt in ("-b", "--binning"):
+        binning = eval(arg)
+    elif opt in ("-p", "--plotvar"):
+        plotvar = arg
+    elif opt in ("-x", "--x_name"):
+        x_name = arg
+    elif opt in ("-y", "--y_name"):
+        y_name = arg
+    elif opt in ("-f", "--f_name"):
+        f_name = arg
+    elif opt in ("-j", "--json_used"):
+        json_used = arg
+    elif opt in ("-d", "--dolog"):
+        dolog = True
+print plotvar, x_name, f_name
+
+
+#tname = "cattree/nom"
+ltname = ["/nom","/mu_u","/mu_d","/jes_u","/jes_d","/jer_u","/jer_d"]
+lhsum = []
+
+dolog = True
+tcut = '(%s)*%s'%(cut,weight)
+#tcut = '(%s)'%(cut)
+rdfname = rootfileDir + rdfilelist[2] +".root"
+
+sig=[0,0,0,0,0,0]
+bg=[0,0,0,0,0,0]
+#lumilist= [datalumi,300*1000,900*1000,3000*1000] 
+
+if plotvar == 'dilep.M()':
+    f2_txt = open("significance_%s.txt"%(f_name),"w")
+for itname,tname in enumerate(ltname):
+    mchistList = []
+    tname = "cattree"+tname
+    for imc,mcname in enumerate(mcfilelist):
+        print tname
+        data = findDataSet(mcname, datasets)
+        scale = datalumi*data["xsec"]
+        colour = data["colour"]
+        title = data["title"]
+        #if 'DYJets' in mcname: 
+        #scale = scale*dyratio[channel][step] 
+        #    scale = scale*dyratio[channel][1] 
+        if "HToMuMu" in mcname:
+            scale = scale*30.
+            title = title+" #times 30"
+        rfname = rootfileDir + mcname +".root"
+        print rfname
+
+        tfile = ROOT.TFile(rfname)
+        wentries = tfile.Get("cattree/nevents").Integral()
+        scale = scale/wentries
+
+        mchist = makeTH1(rfname, tname, title, binning, plotvar, tcut, scale)    
+        mchist.SetFillColor(colour)
+        mchist.SetLineColor(colour)
+        mchistList.append(mchist)
+    tname=""
+    hsum=setLastHist(mchistList)
+    hsum.SetLineColor(itname+1)
+    lhsum.append(hsum)
+
+rfile = ROOT.TFile("histo.root","RECREATE")
+for i in range(len(ltname)):
+  lhsum[i].SetName(ltname[i])
+  lhsum[i].Write()
+rfile.Write()
+rfile.Close()
+print "rdfname: %s\n tname: %s\n binning: %s\n plotvar: %s\n tcut: %s\n"%(rdfname, tname, binning, plotvar, tcut)
+if "weight" in tcut:
+  tcut=cut
+rdhist = makeTH1(rdfname, "cattree"+ltname[0], 'data', binning, plotvar, tcut)
+#drawTH1(f_name+".png", CMS_lumi, mchistList, rdhist, x_name, y_name,dolog)
+
+print "="*50
+print rfname
+print "="*50
+x_min = 110
+#f_txt_bw = open("bw_%s.txt"%(f_name),"w")
+while (x_min<140):
+  if plotvar == 'dilep.M()':# blind data around higgs mass
+    #f_txt = open("events_%s.txt"%(f_name),"w")
+    #print>>f_txt, "Run data : %s\n cut : %s\n # : \n %d\n"%(rdfilelist[0],f_name,rdhist.Integral(rdhist.FindBin(100),rdhist.FindBin(110)))
+    #value=[0,0,0,0]
+    #value[0],value[1],value[2],value[3] = drawBWFit("bw_"+f_name+".png",rdhist,88,94)
+    #print>>f_txt_bw, "==== %d ===="%(x_min)   
+    #print>>f_txt_bw, "f_name : %s\n mean : %f\n mean error : %f\n gamma : %f\n gamma error : %f\n"%(f_name,value[0],value[1],value[2],value[3])
+    #f_txt2 = open("eventlist_%s_%s.txt"%(rdfilelist[0],f_name),"w")
+    #print>>f_txt2, 
+ #   print>>f2_txt, " cut : %s\n"%(f_name)
+ #   for j in range(6):
+ #       print>>f2_txt, "*"*(50)
+ #       print>>f2_txt, " datalumi : %s\n sig : %s\n bg : %s\n significance : %s\n"%(lumilist[j],sig[j],bg[j],(sig[j]/math.sqrt(sig[j]+bg[j])))
+    #parameterization("fit_"+f_name+"_%d.png"%(x_min), rdhist, mchistList, x_min, binning[2], value[0], value[1], value[2], value[3])
+    if 'SingleMuon' in rdfname:
+        if len(binning) == 3:
+            htmp = ROOT.TH1D("tmp", "tmp", binning[0], binning[1], binning[2])
+        else:
+            htmp = ROOT.TH1D("tmp", "tmp", len(binning)-1, array.array('f', binning))
+        for i in range(binning[1],binning[2]):
+            if (rdhist.FindBin(120)<=i<=rdhist.FindBin(130)):continue
+            entries=rdhist.GetBinContent(i)
+            htmp.SetBinContent(i,entries)
+    c=ROOT.TCanvas("c","c",800,600)
+    leg=ROOT.TLegend(0.7,0.7,0.9,0.9)
+    c.cd()
+    lhsum[0].Draw("b")
+    leg.AddEntry(lhsum[0],ltname[0],"l")    
+    lhsum[1].Draw("bsame")        
+    leg.AddEntry(lhsum[1],ltname[1],"l")    
+    lhsum[2].Draw("bsame")        
+    leg.AddEntry(lhsum[2],ltname[2],"l")    
+    leg.Draw("same")
+    c.SetLogy()
+    c.SaveAs("se_"+f_name+"_%d.png"%(x_min))
+    #after blind the signal region.
+    #parameterization("fit_"+f_name+"_%d_nosignal.png"%(x_min), htmp, mchistList, x_min, binning[2], value[0], value[1], value[2], value[3])
+    #f_txt2.close()
+    #f_txt.close()
+    #f2_txt.close()
+    x_min +=10
+
+#f_txt_bw.close()
+

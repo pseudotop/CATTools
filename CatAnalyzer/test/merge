@@ -13,9 +13,10 @@ if "results_merged" not in os.listdir(os.getcwd()):
     os.system("mkdir results_merged")
     print "'results_merged' has been created."
 """
-version="v7-6-6/"
+#version="v7-6-6/"
+version=os.environ["CMSSW_VERSION"]
 pstored="/xrootd/store/user/pseudotop/ntuples/"
-pstored2=pstored+version
+pstored2=pstored+"v7-6-6/"
 pmerged=pstored+"results_merged/" 
 
 if pmerged+version not in os.listdir(pstored):
@@ -39,7 +40,8 @@ for d in dir_list:
     if len(root_list) == 0:
         failed_list.append(d)
     else:
-        os.system("hadd -f %s.root %s"%(pmerged+version+"h2muAnalyzer_"+d,file_names))
+        #os.system("hadd -f %s.root %s"%(pmerged+version+"h2muAnalyzer_"+d,file_names))
+        os.system("hadd -f %s.root %s"%(pmerged+version+"/h2muAnalyzer_"+d,file_names))
 
 if len(failed_list) > 0:
     print

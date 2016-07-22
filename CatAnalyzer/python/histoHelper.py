@@ -270,7 +270,7 @@ def table(mchistList, errList, signal_hist, signal_err):
 
     return nums, errs
 
-def fcnBreitWigner(x,par):
+def fBreitWigner(x,par):
     '''
     par[0] = constant
     par[1] = mean
@@ -279,7 +279,7 @@ def fcnBreitWigner(x,par):
     pi = ROOT.TMath.Pi()
     return par[2]/((x[0]-par[1])*(x[0]-par[1]) + par[2]*par[2]/4) * (2/pi) * par[0]
 
-def fcnParameterization(x,par):
+def fParameterization(x,par):
     '''
     par[0] = constant
     par[1] = mean
@@ -301,7 +301,7 @@ def drawBWFit(name, data, x_min, x_max, doLog=False, draw=False):
     max = data.GetMaximum()
     print x_min,x_max, smean, sgamma
 
-    fbw = ROOT.TF1("fbw",fcnBreitWigner,x_min,x_max,3)
+    fbw = ROOT.TF1("fbw",fBreitWigner,x_min,x_max,3)
     #fbw = ROOT.TF1("fbw","[1]/((x-[0])*(x-[0]) + [1]*[1]/4) * (2*TMath::Pi())",x_min,x_max)
     #fbw.SetParameters(1000,smean,sgamma)
     fbw.SetParLimits(1,smean-10,smean+10)
@@ -321,7 +321,7 @@ def drawBWFit(name, data, x_min, x_max, doLog=False, draw=False):
 def parameterization(name, data, mclist, x_min, x_max, mean, meanerr, gamma, gammaerr,doLog=True):
     c = ROOT.TCanvas(name,name,800,600)
 
-    fp = ROOT.TF1("fp",fcnParameterization,x_min,x_max,5)
+    fp = ROOT.TF1("fp",fParameterization,x_min,x_max,5)
 
     leg = ROOT.TLegend(0.71,0.60,0.90,0.80)
     leg.SetBorderSize(0)
@@ -397,6 +397,20 @@ def setNameIntoCanvas(pad,name):
     pad.Update()
     return pad
 
-
-
+def setLastHist(mclist): 
+    hs = ROOT.THStack("hs_mc", "hs_mc")
+    hratio = mclist[0].Clone("hratio")
+    hratio.Reset()
+    leghist = []
+    for i, mc in enumerate(mclist):
+        #hnew = mc.Clone("hnew"+mc.GetName())
+        #hnew.Sumw2(False)
+        #hs.Add(hnew)
+        hratio.Add(mc)
+        inversed = mclist[len(mclist)-1-i]
+        if not any(inversed.GetTitle() == s for s in leghist):
+            #leg.AddEntry(inversed, inversed.GetTitle(), "f")
+            leghist.append(inversed.GetTitle())
+    return hratio
     
+
