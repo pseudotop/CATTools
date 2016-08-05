@@ -4,17 +4,18 @@ import ROOT,os,sys,copy
 ROOT.gROOT.SetBatch(True)
 
 ds = []
-outDir = "%s/src/CATTools/CatAnalyzer/test/h2muDraw/plot" %( os.environ['CMSSW_BASE'] )
+outDir = "plot"
 if not os.path.isdir(outDir):os.mkdir(outDir)
 
-info = [['nvertex','nvertex','(ll_m>50&&step>=5&&filtered==1)','[30,0,30]','no. vertex','events'],
-        ['dilep.M()','ll_m','(ll_m>50&&step>=5&&filtered==1)','[200,0,200]','mass [GeV]','events'],
-        ['dilep.Pt()','ll_pt','(ll_m>50&&step>=5&&filtered==1)','[100,0,100]','diMuon p_{T} [GeV]','events'],
-        ['lep1.Pt()','lep1_pt','(ll_m>50&&step>=5&&filtered==1)','[100,0,100]','leading muon p_{T} [GeV]','events'],
-        ['lep2.Pt()','lep2_pt','(ll_m>50&&step>=5&&filtered==1)','[100,0,100]','sub-leading muon p_{T} [GeV]','events'],
-        ['lep1.Eta()','lep1_eta','(ll_m>50&&step>=5&&filtered==1)','[100,-3,3]','#eta','events'],
-        ['lep2.Eta()','lep2_eta','(ll_m>50&&step>=5&&filtered==1)','[100,-3,3]','#eta','events'],
-        ['met','met','(ll_m>50&&step>=5&&filtered==1)','[100,0,100]','met [GeV]','events'],
+info = [
+        #['nvertex','nvertex','(ll_m>50&&step>=5&&filtered==1)','[30,0,30]','no. vertex','events'],
+        ['dilep.M()','ll_m','(dilep.M()>50&&step>=5&&filtered==1)','[300,0,300]','mass [GeV]','events'],
+        #['dilep.Pt()','ll_pt','(ll_m>50&&step>=5&&filtered==1)','[100,0,100]','diMuon p_{T} [GeV]','events'],
+        #['lep1.Pt()','lep1_pt','(ll_m>50&&step>=5&&filtered==1)','[100,0,100]','leading muon p_{T} [GeV]','events'],
+        #['lep2.Pt()','lep2_pt','(ll_m>50&&step>=5&&filtered==1)','[100,0,100]','sub-leading muon p_{T} [GeV]','events'],
+        #['lep1.Eta()','lep1_eta','(ll_m>50&&step>=5&&filtered==1)','[100,-3,3]','#eta','events'],
+        #['lep2.Eta()','lep2_eta','(ll_m>50&&step>=5&&filtered==1)','[100,-3,3]','#eta','events'],
+        #['met','met','(ll_m>50&&step>=5&&filtered==1)','[100,0,100]','met [GeV]','events'],
        ]
 
 muid = ["tight","medium"]
@@ -72,8 +73,9 @@ for i in range(len(info)):
                'y_name':info[i][5],
     })
     sorted(ds[i])
-print ds
-print>>f_json, json.dumps(ds)
+import pprint
+pprint.pprint(ds)
+print>>f_json, json.dumps(ds,indent=4,sort_keys=True)
 f_json.close()
 print '== done =='
 print 'After run this script, run \"run_h2muDraw.py\"'

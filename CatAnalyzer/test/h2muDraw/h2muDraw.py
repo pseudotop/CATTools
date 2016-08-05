@@ -218,7 +218,7 @@ while (x_min<140):
             htmp.SetBinContent(i,entries)
             
     #after blind the signal region.
-    parameterization("fit_"+f_name+"_%d_nosignal.png"%(x_min), htmp, mchistList, x_min, binning[2], value[0], value[1], value[2], value[3])
+    parameterization("fit_"+f_name+"_%d_signal_region_blinded.png"%(x_min), htmp, mchistList, x_min, binning[2], value[0], value[1], value[2], value[3])
     #f_txt2.close()
     f_txt.close()
     f2_txt.close()
