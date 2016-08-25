@@ -30,7 +30,7 @@ with open(dataset_json) as data_file:
         fileList = datadir + 'dataset_' + datasetName + '.txt'
         jobName = analysis+'_'+datasetName
         #createbatch = "create-batch --cfg %s --jobName %s --fileList %s --maxFiles 10"%(pythonCfg, jobName, fileList) 
-        createbatch = "create-batch --cfg %s --jobName %s --fileList %s --maxFiles 10 --transferDest \"root://cms-xrdr.sdfarm.kr:1094//xrd/store/user/pseudotop/ntuples/%s/%s\""%(pythonCfg, jobName, fileList, version, datasetName)
+        createbatch = "create-batch --cfg %s --jobName %s --fileList %s --maxFiles 50 --transferDest \"root://cms-xrdr.sdfarm.kr:1094//xrd/store/user/pseudotop/ntuples/%s/%s\""%(pythonCfg, jobName, fileList, version, datasetName)
         print createbatch
         os.system(createbatch)
         

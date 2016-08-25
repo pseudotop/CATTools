@@ -17,8 +17,11 @@ h2muDraw.py -c 'll_m>50&&step>=5&&isTight==1&&filtered==1' -b [100,-3,3] -p lep1
 
 json_used = 'Golden'
 datalumi = 2260
+version = os.environ['CMSSW_VERSION']
+
+rootfileDir = "/xrootd/store/user/pseudotop/ntuples/results_merged/%s/h2muAnalyzer_"%version
+#rootfileDir = "/xrootd/store/user/pseudotop/ntuples/results_merged/v7-6-6/h2muAnalyzer_"
 #rootfileDir = "root:///cms-xrdr.sdfarm.kr:1094//xrd/store/user/pseudotop/ntuples/results_merged/v7-6-6/h2muAnalyzer_"
-rootfileDir = "/xrootd/store/user/pseudotop/ntuples/results_merged/v7-6-6/h2muAnalyzer_"
 #rootfileDir = "%s/src/CATTools/CatAnalyzer/test/results_merged/h2muAnalyzer_" % os.environ['CMSSW_BASE']
 #rootfileDir = "%s/cattuples/20160324_163101/results_merged/h2muAnalyzer_" % os.environ['HOME_SCRATCH']
 

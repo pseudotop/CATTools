@@ -29,6 +29,8 @@ class drawSysErr:
 
     def __del__(self):
         self.getresult()
+        with open(self.txt,"r") as f:
+            print f.read()
         print "=== complete plotting samples ==="
 
     def comparison(self,vs,i):
@@ -70,16 +72,17 @@ class drawSysErr:
         self.binning = _binning
 
     def getresult(self):
-        self.f_txt = open("sys_err_%d.txt"%(self.bin),"w")
+        self.txt = "sys_err_%d.txt"%(self.bin)
+        f_txt = open(self.txt,"w")
         syserr={}
-        print>>self.f_txt, (" %d GeV "%self.bin).center(50,"*")
-        row = '{:>%d}; {:>14}; '%(self.len)
-        words = ["sample","N_original"]
+        print>>f_txt, (" %d GeV "%self.bin).center(50,"*")
+        row = '{:>%d}; {:>14}; {:>14}; '%(self.len)
+        words = ["sample","N_original","MC_stat"]
         for i in range(len(self.versus)):
             row += '{:>14}; {:>14}; '
             words.append("%s_up"%self.versus[i])
             words.append("%s_dn"%self.versus[i])
-        print>>self.f_txt, row.format(*words)
+        print>>f_txt, row.format(*words)
         #initialize dictionary
         re_word = ''
         for i,word in enumerate(words):
@@ -91,16 +94,16 @@ class drawSysErr:
             count = 0
             for j,_entries in enumerate(self.entries):
                 if _entries['rfname'] != _rfname:continue
-                syserr["sample"],syserr["N_original"] = _entries['rfname'],"%.6f"%_entries['N0']
+                syserr["sample"],syserr["N_original"],syserr["MC_stat"] = _entries['rfname'],"%.6f"%_entries['N0'],"+- %.4f%%"%_entries['N0_stat']
                 for k,_versus in enumerate(self.versus):
                     if _entries['vs'] != _versus:continue
                     syserr["%s_up"%_versus],syserr["%s_dn"%_versus] = "%.6f"%_entries['N1'],"%.6f"%_entries['N2']
                 count += 1
             if (count == count and syserr["sample"]!=0):
-                print>>self.f_txt, re_word.format(**syserr)
+                print>>f_txt, re_word.format(**syserr)
             for key in syserr:
                 syserr[key] = 0    
-        self.f_txt.close()
+        f_txt.close()
                     
 
 
@@ -162,11 +165,14 @@ class drawSysErr:
 
         #f_txt = open("%s.txt"%(ofname),"w")
         leg=ROOT.TLegend(0.6,0.7,0.9,0.9)
-        h1.Draw("hist")
+        h1.Draw("hist e")
         leg.SetHeader(rfname)
         leg.AddEntry(lh[0],self.ltname[0]+"_"+self.ltcut[0],"l")    
         entries = []
         entries.append(lh[0].GetBinContent(lh[0].FindBin(self.bin)))
+        errpercent=( 100 * lh[0].GetBinError(lh[0].FindBin(self.bin)) )/ lh[0].GetBinContent(lh[0].FindBin(self.bin))
+        #errpercent=lh[0].GetBinError(lh[0].FindBin(self.bin))
+        entries.append(errpercent)
         leg.AddEntry(0,"%.4f around %s GeV"%(entries[0],self.bin),"")
         for i in range(tr_min,tr_max):
             if (self.comparison(versus,i)):
@@ -187,8 +193,9 @@ class drawSysErr:
             'rfname':rfname,
             'vs':versus,
             'N0':entries[0],
-            'N1':entries[1],
-            'N2':entries[2]
+            'N0_stat':entries[1],
+            'N1':entries[2],
+            'N2':entries[3],
         })     
   
         pads[1].cd()

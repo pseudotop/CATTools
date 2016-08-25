@@ -63,9 +63,9 @@ queue
 for i,info in enumerate(info_json):
     plotvar,f_name,cut,binning,x_name,y_name = info['plotvar'],info['f_name'],info['cut'],info['binning'],info['x_name'],info['y_name']
     if plotvar == 'll_m':
-        args = "-c \'%s\' -b %s -p %s -x \'%s\' -y \'%s\' -f \'%s\' -j \'%s\' -d"%(cut,binning,plotvar,x_name,y_name,f_name,json_used)
+        args = "-c \'%s\' -b %s -p \'%s\' -x \'%s\' -y \'%s\' -f \'%s\' -j \'%s\' -d"%(cut,binning,plotvar,x_name,y_name,f_name,json_used)
     else:
-        args = "-c \'%s\' -b %s -p %s -x \'%s\' -y \'%s\' -f \'%s\' -j \'%s\'"%(cut,binning,plotvar,x_name,y_name,f_name,json_used)
+        args = "-c \'%s\' -b %s -p \'%s\' -x \'%s\' -y \'%s\' -f \'%s\' -j \'%s\'"%(cut,binning,plotvar,x_name,y_name,f_name,json_used)
     
     #if not i<1:continue
     name_sh, name_jds = "%s/tmp_%s.sh"%(outDir,i),"%s/tmp_%s.jds"%(outDir,i)
@@ -78,10 +78,11 @@ for i,info in enumerate(info_json):
     tmp_f_jds = open(name_jds,"w")
     tmp_f_jds.write(f_jds)
     tmp_f_jds.close()
-    os.system("chmod 755 %s"%name_jds)
-    os.system("chmod 755 %s"%name_sh)
-    os.system("condor_submit %s"%name_jds)
+    #os.system("chmod 755 %s"%name_jds)
+    #os.system("chmod 755 %s"%name_sh)
+    #os.system("condor_submit %s"%name_jds)
     #os.system("rm -f tmp.jds")
     #os.system("rm -f tmp.sh")
     print "%d/%d"%(i,len(info_json))
-#print ("./h2muDraw.py -c \"%s\" -b %s -p %s -x %s -y %s -f %s/%s&"%(cut,binning,plotvar,x_name,y_name,outDir,f_name))
+    print ("./h2muDraw.py %s"%args)
+    os.system("./h2muDraw.py %s&"%args)

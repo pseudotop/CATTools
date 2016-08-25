@@ -331,20 +331,25 @@ def parameterization(name, data, mclist, x_min, x_max, mean, meanerr, gamma, gam
     leg.SetLineColor(0)
     leg.SetFillColor(0)
     leg.AddEntry(data,"Data","lp")
-    hs = ROOT.THStack("hs_%s_mc"%(name), "hs_%s_mc"%(name))
+    hs1 = ROOT.THStack("hs_%s_mc"%(name), "hs_%s_mc"%(name))
+    hs2 = ROOT.THStack("hs_%s_mc"%(name), "hs_%s_mc"%(name))
     hratio = mclist[0].Clone("hratio")
     hratio.Reset()
     leghist = []
     for i, mc in enumerate(mclist):
         hnew = mc.Clone("hnew"+mc.GetName())
+        print mc.GetTitle()
         hnew.Sumw2(False)
-        hs.Add(hnew)
+        if ("GG_H" in mc.GetTitle()) or ("VBF_H" in mc.GetTitle()):
+            hs2.Add(hnew)
+        else:
+            hs1.Add(hnew)
         hratio.Add(mc)
         inversed = mclist[len(mclist)-1-i]
         if not any(inversed.GetTitle() == s for s in leghist):
             #leg.AddEntry(inversed, inversed.GetTitle(), "f")
             leghist.append(inversed.GetTitle())
-    hsum = hs.GetStack().Last()
+    hsum = hs1.GetStack().Last()
     nmc = hsum.Integral(x_min,x_max)
     print nmc
     fp.SetLineColor(ROOT.kRed)
@@ -353,15 +358,27 @@ def parameterization(name, data, mclist, x_min, x_max, mean, meanerr, gamma, gam
     fp.SetParLimits(2,gamma-gammaerr,gamma+gammaerr)
     fp.SetLineWidth(3)
     fp.SetParNames("N_{bg}","m_{Z}","#gamma","#Lambda","#beta")
+    from time import localtime, strftime
+    leg.SetHeader(strftime("%Y-%m-%d %H:%M", localtime()))
+    #legheader=leg.GetListOfPrimitives().First()
+    #legheader.SetTextAlign(22)
+    #legheader.SetTextSize(0.04)
+    hs2sum = hs2.GetStack().Last()
+    hs2sum.SetLineColor(ROOT.kOrange)
+    hs2sum.SetLineWidth(3)
+    hs2sum.SetFillColor(0)
     leg.AddEntry(fp,"fit","l")
+    leg.AddEntry(hs2sum,"Higgs x 30","l")
 
     data.Fit("fp","R")
-    data.Draw()
-    hs.Draw("same")
-    data.Draw("esamex0")
+    data.Draw("ex0")
+    #hs1.Draw("same")
+    hs2sum.Draw("lsame")
+    #data.Draw("esamex0")
     fp.Draw("same")
     leg.Draw("same")
     if doLog:
+        data.SetMinimum(10**-2)
         c.SetLogy()
     setNameIntoCanvas(c,name)
     c.cd()
@@ -391,7 +408,8 @@ def setNameIntoCanvas(pad,name):
 
     #need to fix the code for putting text in canvas.
     latex=ROOT.TLatex()
-    latex.DrawLatex(r,1-t+0.2*t,fname)
+    latex.SetTextSize(0.045)
+    latex.DrawLatexNDC(r,1-t,fname)
     #latex.DrawLatex(W/2,H/2,fname)
     #pad.Modified()
     pad.Update()

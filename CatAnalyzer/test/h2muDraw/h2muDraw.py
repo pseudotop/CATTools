@@ -17,7 +17,10 @@ h2muDraw.py -c 'll_m>50&&step>=5&&isTight==1&&filtered==1' -b [100,-3,3] -p lep1
 
 json_used = 'Golden'
 datalumi = 2260
-rootfileDir = "/xrootd/store/user/pseudotop/ntuples/results_merged/v7-6-3/h2muAnalyzer_"
+version = os.environ['CMSSW_VERSION']
+
+rootfileDir = "/xrootd/store/user/pseudotop/ntuples/results_merged/%s/h2muAnalyzer_"%version
+#rootfileDir = "/xrootd/store/user/pseudotop/ntuples/results_merged/v7-6-3/h2muAnalyzer_"
 #rootfileDir = "%s/src/CATTools/CatAnalyzer/test/results_merged/h2muAnalyzer_" % os.environ['CMSSW_BASE']
 #rootfileDir = "%s/cattuples/20160324_163101/results_merged/h2muAnalyzer_" % os.environ['HOME_SCRATCH']
 
@@ -149,7 +152,7 @@ for imc,mcname in enumerate(mcfilelist):
     tfile = ROOT.TFile(rfname)
     wentries = tfile.Get("cattree/nevents").Integral()
     scale = scale/wentries
-    
+   
     mchist = makeTH1(rfname, tname, title, binning, plotvar, tcut, scale)    
     mchist.SetFillColor(colour)
     mchist.SetLineColor(colour)
@@ -206,6 +209,7 @@ while (x_min<140):
  #   for j in range(6):
  #       print>>f2_txt, "*"*(50)
  #       print>>f2_txt, " datalumi : %s\n sig : %s\n bg : %s\n significance : %s\n"%(lumilist[j],sig[j],bg[j],(sig[j]/math.sqrt(sig[j]+bg[j])))
+   
     parameterization("fit_"+f_name+"_%d.png"%(x_min), rdhist, mchistList, x_min, binning[2], value[0], value[1], value[2], value[3])
     if 'SingleMuon' in rdfname:
         if len(binning) == 3:
